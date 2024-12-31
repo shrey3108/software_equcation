@@ -1,0 +1,467 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Subject Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="card-title mb-0">{{ subject.name }}</h2>
+                            <p class="card-text">{{ subject.subject_code }}</p>
+                        </div>
+                        <div>
+                            <a href="{{ url_for('subject_chat', subject_id=subject._id) }}" class="btn btn-outline-light me-2">
+                                <i class="fas fa-comments"></i> Class Discussion
+                            </a>
+                            <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-outline-light">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Subject Info -->
+        <div class="col-md-4">
+            <!-- Quick Stats -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Enrolled Students:</span>
+                        <span class="badge bg-primary">{{ subject.enrollments|length }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Grade Level:</span>
+                        <span class="badge bg-info">Grade {{ subject.grade_level }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Credits:</span>
+                        <span class="badge bg-secondary">{{ subject.credits }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subject Details -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Subject Details</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Description</h6>
+                    <p>{{ subject.description }}</p>
+                    
+                    <h6>Prerequisites</h6>
+                    <p>{{ subject.prerequisites or 'None' }}</p>
+                    
+                    <div class="d-grid">
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editSubjectModal">
+                            <i class="fas fa-edit"></i> Edit Subject Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Tabs -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#students">Students</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#modules">Modules</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#assignments">Assignments</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#grades">Grades</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <!-- Students Tab -->
+                        <div class="tab-pane fade show active" id="students">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">Enrolled Students</h5>
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                                    <i class="fas fa-user-plus"></i> Add Student
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Enrollment Date</th>
+                                            <th>Progress</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for student in students %}
+                                        <tr>
+                                            <td>
+                                                <i class="fas fa-user"></i>
+                                                {{ student.username or student.email.split('@')[0] }}
+                                            </td>
+                                            <td>{{ student.email }}</td>
+                                            <td>
+                                                {% if student.enrolled_at %}
+                                                    {{ student.enrolled_at.strftime('%Y-%m-%d') }}
+                                                {% else %}
+                                                    Not available
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         style="width: {{ student.progress }}%" 
+                                                         aria-valuenow="{{ student.progress }}" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                        {{ student.progress }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-sm btn-outline-primary" title="View student details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger" title="Remove from subject">
+                                                        <i class="fas fa-user-minus"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Modules Tab -->
+                        <div class="tab-pane fade" id="modules">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">Course Modules</h5>
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addModuleModal">
+                                    <i class="fas fa-plus"></i> Add Module
+                                </button>
+                            </div>
+                            <div class="list-group">
+                                {% if subject.modules %}
+                                    {% for module in subject.modules|sort(attribute='order') %}
+                                    <div class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ module.title }}</h6>
+                                            <small>{{ module.duration }} week{% if module.duration != 1 %}s{% endif %}</small>
+                                        </div>
+                                        <p class="mb-1">{{ module.description }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small>
+                                                Created: {{ module.created_at.strftime('%Y-%m-%d') if module.created_at }}
+                                                {% if module.resources %}
+                                                    | {{ module.resources|length }} resource{% if module.resources|length != 1 %}s{% endif %}
+                                                {% endif %}
+                                            </small>
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-outline-primary" title="Edit module">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-info" title="Manage resources">
+                                                    <i class="fas fa-folder-open"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Delete module">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center text-muted py-4">
+                                        <i class="fas fa-book-open fa-3x mb-3"></i>
+                                        <p>No modules created yet. Click "Add Module" to create your first module.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Assignments Tab -->
+                        <div class="tab-pane fade" id="assignments">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">Assignments</h5>
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addAssignmentModal">
+                                    <i class="fas fa-plus"></i> Create Assignment
+                                </button>
+                            </div>
+                            <div class="list-group">
+                                {% if subject.assignments %}
+                                    {% for assignment in subject.assignments|sort(attribute='due_date', reverse=true) %}
+                                    <div class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ assignment.title }}</h6>
+                                            <span class="badge {% if assignment.due_date < current_time %}bg-danger{% else %}bg-primary{% endif %}">
+                                                Due: {{ assignment.due_date.strftime('%Y-%m-%d') }}
+                                            </span>
+                                        </div>
+                                        <p class="mb-1">{{ assignment.description }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small>
+                                                Points: {{ assignment.points }} | 
+                                                {% if assignment.submissions %}
+                                                    {{ assignment.submissions|length }} submission{% if assignment.submissions|length != 1 %}s{% endif %}
+                                                {% else %}
+                                                    No submissions yet
+                                                {% endif %}
+                                            </small>
+                                            <div class="btn-group">
+                                                <a href="{{ url_for('view_assignment', assignment_id=assignment._id) }}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ url_for('edit_assignment', subject_id=subject._id, assignment_id=assignment._id) }}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-outline-danger" 
+                                                        onclick="deleteAssignment('{{ subject._id }}', '{{ assignment._id }}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center text-muted py-4">
+                                        <i class="fas fa-tasks fa-3x mb-3"></i>
+                                        <p>No assignments created yet. Click "Create Assignment" to add your first assignment.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Grades Tab -->
+                        <div class="tab-pane fade" id="grades">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">Grade Book</h5>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-download"></i> Export Grades
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-cog"></i> Grade Settings
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Student</th>
+                                            <th>Assignments</th>
+                                            <th>Quizzes</th>
+                                            <th>Participation</th>
+                                            <th>Final Grade</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for student in students %}
+                                        <tr>
+                                            <td>{{ student.username }}</td>
+                                            <td>85%</td>
+                                            <td>92%</td>
+                                            <td>88%</td>
+                                            <td><strong>88.3%</strong></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary">Details</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Student</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="studentEmail" class="form-label">Student Email</label>
+                        <input type="email" class="form-control" id="studentEmail" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Add Student</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Module Modal -->
+<div class="modal fade" id="addModuleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Module</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="moduleForm" action="{{ url_for('create_module', subject_id=subject._id) }}" method="POST">
+                    <div class="mb-3">
+                        <label for="moduleTitle" class="form-label">Module Title</label>
+                        <input type="text" class="form-control" id="moduleTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="moduleDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="moduleDescription" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="moduleDuration" class="form-label">Duration (weeks)</label>
+                        <input type="number" class="form-control" id="moduleDuration" name="duration" min="1" value="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="moduleOrder" class="form-label">Module Order</label>
+                        <input type="number" class="form-control" id="moduleOrder" name="order" min="1" value="{{ (subject.modules|length) + 1 }}" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="moduleForm" class="btn btn-primary">Create Module</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Assignment Modal -->
+<div class="modal fade" id="addAssignmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Assignment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="assignmentForm" action="{{ url_for('create_assignment', subject_id=subject._id) }}" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="assignmentTitle" class="form-label">Assignment Title</label>
+                        <input type="text" class="form-control" id="assignmentTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignmentDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="assignmentDescription" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignmentPoints" class="form-label">Points</label>
+                        <input type="number" class="form-control" id="assignmentPoints" name="points" min="1" value="10" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dueDate" class="form-label">Due Date</label>
+                        <input type="datetime-local" class="form-control" id="dueDate" name="due_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignmentModule" class="form-label">Associated Module (Optional)</label>
+                        <select class="form-select" id="assignmentModule" name="module_id">
+                            <option value="">None</option>
+                            {% if subject.modules %}
+                                {% for module in subject.modules %}
+                                    <option value="{{ module._id }}">{{ module.title }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignmentFiles" class="form-label">Assignment Files (Optional)</label>
+                        <input type="file" class="form-control" id="assignmentFiles" name="files" multiple accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.gif">
+                        <div class="form-text">Allowed files: PDF, DOC, DOCX, TXT, PNG, JPG, JPEG, GIF</div>
+                    </div>
+                    <div class="modal-footer px-0 pb-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Assignment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Subject Modal -->
+<div class="modal fade" id="editSubjectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Subject Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="editSubjectName" class="form-label">Subject Name</label>
+                        <input type="text" class="form-control" id="editSubjectName" value="{{ subject.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSubjectCode" class="form-label">Subject Code</label>
+                        <input type="text" class="form-control" id="editSubjectCode" value="{{ subject.subject_code }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="editDescription" rows="3">{{ subject.description }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPrerequisites" class="form-label">Prerequisites</label>
+                        <input type="text" class="form-control" id="editPrerequisites" value="{{ subject.prerequisites }}">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+<script>
+    // Initialize all tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+{% endblock %}
+{% endblock %}

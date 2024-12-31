@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Enrollment Requests</h2>
+<div class="row mt-4">
+    {% for subject in subjects %}
+        {% if subject.requests %}
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">{{ subject.name }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>Email</th>
+                                        <th>Requested On</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in subject.requests %}
+                                        <tr>
+                                            <td>{{ request.student_name }}</td>
+                                            <td>{{ request.student_email }}</td>
+                                            <td>{{ request.requested_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                            <td>
+                                                <form action="{{ url_for('handle_enrollment_request') }}" method="POST" style="display: inline;">
+                                                    <input type="hidden" name="request_id" value="{{ request._id }}">
+                                                    <input type="hidden" name="action" value="accept">
+                                                    <button type="submit" class="btn btn-success btn-sm">Accept</button>
+                                                </form>
+                                                <form action="{{ url_for('handle_enrollment_request') }}" method="POST" style="display: inline;">
+                                                    <input type="hidden" name="request_id" value="{{ request._id }}">
+                                                    <input type="hidden" name="action" value="reject">
+                                                    <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="col-12">
+            <p class="text-muted">No pending enrollment requests.</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

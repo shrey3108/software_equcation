@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Create New Subject</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="needs-validation" novalidate>
+                        <!-- Subject Basic Info -->
+                        <div class="mb-4">
+                            <h4 class="mb-3">Basic Information</h4>
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Subject Name*</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                                <div class="invalid-feedback">
+                                    Please provide a subject name.
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="subject_code" class="form-label">Subject Code*</label>
+                                <input type="text" class="form-control" id="subject_code" name="subject_code" 
+                                       placeholder="e.g., MATH101" required>
+                                <div class="invalid-feedback">
+                                    Please provide a subject code.
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description*</label>
+                                <textarea class="form-control" id="description" name="description" 
+                                          rows="3" required></textarea>
+                                <div class="invalid-feedback">
+                                    Please provide a subject description.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subject Details -->
+                        <div class="mb-4">
+                            <h4 class="mb-3">Course Details</h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="grade_level" class="form-label">Grade Level*</label>
+                                    <select class="form-select" id="grade_level" name="grade_level" required>
+                                        <option value="">Choose...</option>
+                                        <option value="9">Grade 9</option>
+                                        <option value="10">Grade 10</option>
+                                        <option value="11">Grade 11</option>
+                                        <option value="12">Grade 12</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please select a grade level.
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="credits" class="form-label">Credits</label>
+                                    <input type="number" class="form-control" id="credits" name="credits" 
+                                           min="1" max="6" value="3">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="prerequisites" class="form-label">Prerequisites</label>
+                                <input type="text" class="form-control" id="prerequisites" name="prerequisites" 
+                                       placeholder="e.g., MATH101, PHY101">
+                                <div class="form-text">Separate multiple prerequisites with commas</div>
+                            </div>
+                        </div>
+
+                        <!-- Course Schedule -->
+                        <div class="mb-4">
+                            <h4 class="mb-3">Schedule Information</h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="max_students" class="form-label">Maximum Students</label>
+                                    <input type="number" class="form-control" id="max_students" name="max_students" 
+                                           min="1" value="30">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="duration_weeks" class="form-label">Duration (weeks)</label>
+                                    <input type="number" class="form-control" id="duration_weeks" name="duration_weeks" 
+                                           min="1" value="16">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-outline-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Subject</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+// Form validation
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+})()
+</script>
+{% endblock %}
+{% endblock %}
