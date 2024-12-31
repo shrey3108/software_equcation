@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section mb-4">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="welcome-title">Welcome to Your Learning Dashboard! 👋</h1>
+                    <p class="welcome-subtitle" style="color: #ffd700;">Ready to start your learning journey?</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{{ url_for('personalized_learning') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus-circle"></i> New Learning Path
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Main Content Area -->
+            <div class="col-lg-8">
+                <!-- Learning Paths Section -->
+                <div class="card dashboard-card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="card-title mb-0">
+                                <i class="fas fa-book-reader text-primary"></i> Learning Paths
+                            </h4>
+                        </div>
+                        
+                        {% if learning_paths %}
+                        <div class="learning-paths-grid">
+                            {% for path in learning_paths %}
+                            <div class="learning-path-card" data-path-id="{{ path._id }}">
+                                <div class="path-content">
+                                    <div class="path-icon">
+                                        <i class="fas fa-graduation-cap"></i>
+                                    </div>
+                                    <h5>{{ path.subject_title }}</h5>
+                                    <p class="text-muted">{{ path.description if path.description else 'No description available' }}</p>
+                                    <div class="path-info">
+                                        <span class="badge bg-light text-dark">
+                                            <i class="fas fa-book"></i> {{ path.modules|length }} Modules
+                                        </span>
+                                        <span class="badge bg-light text-dark">
+                                            <i class="fas fa-clock"></i> {{ path.time_commitment }}h
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="path-actions">
+                                    <a href="{{ url_for('continue_learning', learning_path_id=path._id) }}" 
+                                       class="btn btn-primary btn-sm w-100 mb-2">
+                                        Continue Learning
+                                    </a>
+                                    <button onclick="deletePath('{{ path._id }}')" 
+                                            class="btn btn-danger btn-sm w-100">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="empty-state text-center py-5">
+                            <img src="https://cdn-icons-png.flaticon.com/512/1162/1162499.png" 
+                                 alt="Empty State" 
+                                 class="empty-state-img mb-4"
+                                 style="width: 150px; height: auto;">
+                            <h5>No Learning Paths Yet</h5>
+                            <p class="text-muted">Start your learning journey by creating a personalized path.</p>
+                            <a href="{{ url_for('personalized_learning') }}" class="btn btn-primary">
+                                <i class="fas fa-plus-circle"></i> Create Learning Path
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Quick Stats -->
+                <div class="card dashboard-card mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">
+                            <i class="fas fa-chart-bar text-primary"></i> Quick Stats
+                        </h4>
+                        <div class="quick-stats">
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="fas fa-book-open"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h6>Active Paths</h6>
+                                    <h3>{{ learning_paths|length }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-container {
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+.welcome-section {
+    background-color: #343a40;
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.welcome-title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.learning-paths-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.learning-path-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+.learning-path-card:hover {
+    transform: translateY(-5px);
+}
+
+.path-icon {
+    font-size: 2rem;
+    color: #007bff;
+    margin-bottom: 1rem;
+}
+
+.path-info {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.path-actions {
+    margin-top: 1rem;
+}
+
+.quick-stats {
+    display: grid;
+    gap: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.stat-icon {
+    font-size: 1.5rem;
+    color: #007bff;
+}
+
+.stat-info h6 {
+    margin: 0;
+    color: #6c757d;
+}
+
+.stat-info h3 {
+    margin: 0;
+    font-weight: bold;
+}
+
+.empty-state-img {
+    opacity: 0.5;
+}
+</style>
+<script>
+function deletePath(pathId) {
+    if (confirm('Are you sure you want to delete this learning path? This action cannot be undone.')) {
+        fetch(`/delete_learning_path/${pathId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the path card from the UI
+                const pathCard = document.querySelector(`[data-path-id="${pathId}"]`);
+                if (pathCard) {
+                    pathCard.remove();
+                }
+                // Refresh the page to update the stats
+                window.location.reload();
+            } else {
+                alert('Error deleting learning path: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting learning path. Please try again.');
+        });
+    }
+}
+</script>
+{% endblock %}

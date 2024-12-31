@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center">
+    <h1>Welcome to Education Platform</h1>
+    <p class="lead">A platform for interactive learning and teaching</p>
+    {% if not current_user.is_authenticated %}
+        <div class="mt-4">
+
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
