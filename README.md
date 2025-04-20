@@ -1,1 +1,1 @@
-# software_equcation
+# student

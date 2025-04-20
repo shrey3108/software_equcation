@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Create Your Learning Path</h2>
+            </div>
+
+            <form id="learningPathForm" method="POST" action="{{ url_for('create_custom_path') }}">
+                <!-- Basic Information -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4>Basic Information</h4>
+                        <div class="mb-3">
+                            <label for="subject_title" class="form-label">What subject do you want to learn?</label>
+                            <input type="text" class="form-control" id="subject_title" name="subject_title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="current_knowledge" class="form-label">Your Current Level</label>
+                            <select class="form-control" id="current_knowledge" name="current_knowledge" required>
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chapter Selection -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4>Select Chapters to Learn</h4>
+                        <p class="text-muted">Choose 5-6 chapters you want to focus on</p>
+                        <div id="chaptersContainer">
+                            <!-- Chapters will be dynamically added here -->
+                        </div>
+                        <button type="button" class="btn btn-outline-primary mt-3" onclick="addChapter()">
+                            <i class="fas fa-plus"></i> Add Chapter
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Learning Preferences -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4>Learning Preferences</h4>
+                        <div class="mb-3">
+                            <label class="form-label">What types of resources do you prefer?</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="resources[]" value="video" id="video" checked>
+                                <label class="form-check-label" for="video">
+                                    <i class="fab fa-youtube text-danger"></i> Video Tutorials
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="resources[]" value="article" id="article" checked>
+                                <label class="form-check-label" for="article">
+                                    <i class="fas fa-file-alt text-primary"></i> Articles & Documentation
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="resources[]" value="quiz" id="quiz" checked>
+                                <label class="form-check-label" for="quiz">
+                                    <i class="fas fa-question-circle text-success"></i> Practice Quizzes
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="resources[]" value="discussion" id="discussion" checked>
+                                <label class="form-check-label" for="discussion">
+                                    <i class="fab fa-quora text-info"></i> Q&A Discussions
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="time_commitment" class="form-label">Weekly Time Commitment (hours)</label>
+                            <input type="number" class="form-control" id="time_commitment" name="time_commitment" min="1" max="40" value="10" required>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg">Generate My Learning Path</button>
+            </form>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="col-md-4">
+            <div class="card sticky-top" style="top: 20px">
+                <div class="card-body">
+                    <h4>Learning Path Preview</h4>
+                    <div id="previewContainer">
+                        <p class="text-muted">Your learning path preview will appear here as you make selections.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chapter Content Modal -->
+<div class="modal fade" id="chapterContentModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chapter Content</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div id="chapterContent"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Related Videos</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="youtubeVideos" class="video-list">
+                                    <!-- YouTube videos will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let chapterCount = 0;
+const MAX_CHAPTERS = 6;
+
+function addChapter() {
+    if (chapterCount >= MAX_CHAPTERS) {
+        alert('Maximum 6 chapters can be added');
+        return;
+    }
+
+    const container = document.getElementById('chaptersContainer');
+    const chapterNum = ++chapterCount;
+    
+    const chapterDiv = document.createElement('div');
+    chapterDiv.className = 'card mb-3';
+    chapterDiv.innerHTML = `
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <div class="mb-2">
+                        <label class="form-label">Chapter ${chapterNum} Title</label>
+                        <input type="text" class="form-control" id="chapter${chapterNum}" name="chapters[${chapterNum}][title]" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Learning Objectives</label>
+                        <textarea class="form-control" name="chapters[${chapterNum}][objectives]" rows="2" required></textarea>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-outline-danger btn-sm ms-2" onclick="removeChapter(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <button type="button" class="btn btn-outline-info btn-sm mt-2" onclick="previewChapterContent(${chapterNum})">
+                <i class="fas fa-eye"></i> Preview Content
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(chapterDiv);
+    updatePreview();
+}
+
+function removeChapter(button) {
+    button.closest('.card').remove();
+    chapterCount--;
+    updatePreview();
+}
+
+function updatePreview() {
+    const preview = document.getElementById('previewContainer');
+    const chapters = document.querySelectorAll('#chaptersContainer .card');
+    
+    let html = '<ul class="list-group">';
+    chapters.forEach((chapter, index) => {
+        const title = chapter.querySelector('input[type="text"]').value || `Chapter ${index + 1}`;
+        html += `
+            <li class="list-group-item">
+                <i class="fas fa-book text-primary"></i> ${title}
+            </li>
+        `;
+    });
+    html += '</ul>';
+    
+    preview.innerHTML = html;
+}
+
+async function previewChapterContent(chapterNum) {
+    const chapterInput = document.querySelector(`#chapter${chapterNum}`);
+    if (!chapterInput) return;
+
+    const chapterTitle = chapterInput.value;
+    if (!chapterTitle) return;
+
+    try {
+        // Fetch chapter content
+        const response = await fetch('/get_chapter_content/' + encodeURIComponent(chapterTitle));
+        const data = await response.json();
+
+        // Update chapter content
+        const contentHtml = `
+            <h3>${chapterTitle}</h3>
+            <div class="chapter-content">
+                ${data.content}
+            </div>
+        `;
+        document.getElementById('chapterContent').innerHTML = contentHtml;
+
+        // Fetch and display YouTube videos
+        const videosResponse = await fetch('/search_youtube_videos?query=' + encodeURIComponent(chapterTitle));
+        const videosData = await videosResponse.json();
+        
+        const videosList = document.getElementById('youtubeVideos');
+        videosList.innerHTML = '';
+        
+        if (videosData.items && videosData.items.length > 0) {
+            videosData.items.forEach(video => {
+                const videoHtml = `
+                    <div class="video-item mb-3">
+                        <div class="ratio ratio-16x9 mb-2">
+                            <iframe src="https://www.youtube.com/embed/${video.id.videoId}" 
+                                    title="${video.snippet.title}"
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                            </iframe>
+                        </div>
+                        <h6>${video.snippet.title}</h6>
+                        <p class="small text-muted">${video.snippet.description}</p>
+                    </div>
+                `;
+                videosList.innerHTML += videoHtml;
+            });
+        } else {
+            videosList.innerHTML = '<p>No related videos found.</p>';
+        }
+
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('chapterContentModal'));
+        modal.show();
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error loading chapter content');
+    }
+}
+</script>
+
+<style>
+.resource-item {
+    border-bottom: 1px solid #eee;
+    padding: 15px 0;
+}
+.resource-item:last-child {
+    border-bottom: none;
+}
+.resource-item h6 {
+    margin-bottom: 5px;
+}
+.resource-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.video-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.video-item {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.video-item:last-child {
+    border-bottom: none;
+}
+
+.video-item h6 {
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.video-item p {
+    margin-bottom: 0;
+}
+</style>
+{% endblock %}

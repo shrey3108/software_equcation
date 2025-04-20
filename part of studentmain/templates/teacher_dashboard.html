@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h2 class="card-title">Welcome, {{ current_user.username }}!</h2>
+                    <p class="card-text">Manage your subjects, students, and teaching materials from this dashboard.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Subjects</h5>
+                    <h2 class="display-4">{{ subjects|default([])|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Active Students</h5>
+                    <h2 class="display-4">
+                        {% set total_students = 0 %}
+                        {% for subject in subjects|default([]) %}
+                            {% if subject.enrolled_students %}
+                                {% set total_students = total_students + subject.enrolled_students|length %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ total_students }}
+                    </h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Requests</h5>
+                    <h2 class="display-4">{{ enrollment_requests|default([])|length }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrollment Requests Section -->
+    {% if enrollment_requests and enrollment_requests|length > 0 %}
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h3 class="mb-0">Pending Enrollment Requests</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Email</th>
+                            <th>Subject</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in enrollment_requests %}
+                        <tr>
+                            <td>{{ request.student_name }}</td>
+                            <td>{{ request.student_email }}</td>
+                            <td>{{ request.subject_name }}</td>
+                            <td>{{ request.created_at.strftime('%Y-%m-%d') if request.created_at else 'N/A' }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('handle_enrollment', request_id=request._id, action='approve') }}" 
+                                       class="btn btn-success btn-sm">
+                                        <i class="fas fa-check"></i> Approve
+                                    </a>
+                                    <a href="{{ url_for('handle_enrollment', request_id=request._id, action='reject') }}" 
+                                       class="btn btn-danger btn-sm">
+                                        <i class="fas fa-times"></i> Reject
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% elif enrollment_requests and enrollment_requests|length == 0 %}
+    <div class="text-center py-5">
+        <h4 class="text-muted">No pending enrollment requests</h4>
+        <p class="mb-4">All requests have been processed.</p>
+    </div>
+    {% endif %}
+
+    <!-- Subjects Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">My Subjects</h3>
+                    <a href="{{ url_for('new_subject') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add New Subject
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if subjects and subjects|length > 0 %}
+                    <div class="row">
+                        {% for subject in subjects %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h4 class="card-title mb-1">{{ subject.name }}</h4>
+                                            <small class="text-muted">Code: {{ subject.subject_code }}</small>
+                                        </div>
+                                        <span class="badge bg-info">
+                                            Grade {{ subject.grade_level }}
+                                        </span>
+                                    </div>
+                                    <p class="card-text">{{ subject.description }}</p>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <div>
+                                            <span class="badge bg-primary me-2">
+                                                {{ subject.enrolled_students|default([])|length }} Students
+                                            </span>
+                                            <span class="badge bg-warning">
+                                                {{ subject.pending_requests|default([])|length }} Pending
+                                            </span>
+                                        </div>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('manage_subject', subject_id=subject._id) }}" 
+                                               class="btn btn-outline-primary">
+                                                <i class="fas fa-cog"></i> Manage
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" 
+                                                    data-bs-toggle="dropdown">
+                                                <span class="visually-hidden">Toggle Dropdown</span>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item" href="#">
+                                                        <i class="fas fa-chart-bar"></i> View Progress
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#">
+                                                        <i class="fas fa-edit"></i> Edit Subject
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="#">
+                                                        <i class="fas fa-trash"></i> Delete Subject
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% elif subjects and subjects|length == 0 %}
+                    <div class="text-center py-5">
+                        <h4 class="text-muted">No subjects created yet</h4>
+                        <p class="mb-4">Start by creating your first subject!</p>
+                        <a href="{{ url_for('new_subject') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus"></i> Create Your First Subject
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+{% endblock %}
+{% endblock %}

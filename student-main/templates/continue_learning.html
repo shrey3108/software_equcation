@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h4>{{ learning_path.subject_title }}</h4>
+                    
+                    <!-- Learning Path Card -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h4 class="card-title">{{ learning_path.title }}</h4>
+                            <p class="card-text text-muted">{{ learning_path.description }}</p>
+                            
+                            <!-- Modules List -->
+                            <div class="list-group mt-4">
+                                {% for module in learning_path.modules %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">{{ module.title }}</h6>
+                                            <p class="mb-1 text-muted">{{ module.description }}</p>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-primary btn-sm load-module-content" 
+                                                    data-module-title="{{ module.title }}"
+                                                    data-subject="{{ learning_path.subject_title }}"
+                                                    onclick="loadModuleContent('{{ module.title }}', '{{ learning_path.subject_title }}')">
+                                                <i class="fas fa-book-reader"></i> Start Learning
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <!-- Content Tabs -->
+            <ul class="nav nav-tabs mb-4" id="moduleContentTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="videos-tab" data-bs-toggle="tab" href="#videos" role="tab">
+                        <i class="fab fa-youtube"></i> Videos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="docs-tab" data-bs-toggle="tab" href="#docs" role="tab">
+                        <i class="fas fa-book"></i> Documentation
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="articles-tab" data-bs-toggle="tab" href="#articles" role="tab">
+                        <i class="fas fa-newspaper"></i> Articles
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="quiz-tab" data-bs-toggle="tab" href="#quiz" role="tab">
+                        <i class="fas fa-question-circle"></i> Quiz
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="moduleContentTabsContent">
+                <!-- Videos Tab -->
+                <div class="tab-pane fade show active" id="videos" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body" id="videos-content">
+                            <div class="text-center py-4">
+                                <i class="fas fa-video fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Select a module to view videos.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documentation Tab -->
+                <div class="tab-pane fade" id="docs" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body" id="docs-content">
+                            <div class="text-center py-4">
+                                <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Select a module to view documentation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Articles Tab -->
+                <div class="tab-pane fade" id="articles" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body" id="articles-content">
+                            <div class="text-center py-4">
+                                <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Select a module to view articles.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quiz Tab -->
+                <div class="tab-pane fade" id="quiz" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body" id="quiz-content">
+                            <div class="text-center py-4">
+                                <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Select a module to take the quiz.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadModuleContent(moduleTitle, subject) {
+    // Show loading state
+    const loadingHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted mt-2">Loading content...</p>
+        </div>
+    `;
+
+    document.querySelectorAll('#videos-content, #docs-content, #articles-content, #quiz-content')
+        .forEach(el => el.innerHTML = loadingHTML);
+
+    try {
+        // Load videos
+        const videosResponse = await fetch(`/get_module_videos?module=${encodeURIComponent(moduleTitle)}&subject=${encodeURIComponent(subject)}`);
+        const videosData = await videosResponse.json();
+        displayVideos(videosData);
+
+        // Load documentation
+        const docsResponse = await fetch(`/get_module_docs?module=${encodeURIComponent(moduleTitle)}&subject=${encodeURIComponent(subject)}`);
+        const docsData = await docsResponse.json();
+        displayDocs(docsData);
+
+        // Load articles
+        const articlesResponse = await fetch(`/get_module_articles?module=${encodeURIComponent(moduleTitle)}&subject=${encodeURIComponent(subject)}`);
+        const articlesData = await articlesResponse.json();
+        displayArticles(articlesData);
+
+        // Load quiz
+        const quizResponse = await fetch(`/get_module_quiz?module=${encodeURIComponent(moduleTitle)}&subject=${encodeURIComponent(subject)}`);
+        const quizData = await quizResponse.json();
+        displayQuiz(quizData);
+
+    } catch (error) {
+        console.error('Error loading module content:', error);
+        showError('Failed to load module content. Please try again.');
+    }
+}
+
+function displayVideos(videos) {
+    const videosContainer = document.getElementById('videos-content');
+    if (!videos || videos.length === 0) {
+        videosContainer.innerHTML = `
+            <div class="text-center py-4">
+                <i class="fas fa-video fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No videos available for this module.</p>
+            </div>
+        `;
+        return;
+    }
+
+    videosContainer.innerHTML = `
+        <div class="row">
+            ${videos.map(video => `
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 video-card">
+                        <div class="ratio ratio-16x9">
+                            <iframe 
+                                src="https://www.youtube.com/embed/${video.id}"
+                                title="${video.title}"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">${video.title}</h5>
+                            <p class="card-text text-muted small">${video.description}</p>
+                            <a href="https://www.youtube.com/watch?v=${video.id}" 
+                               target="_blank" 
+                               class="btn btn-outline-danger">
+                                <i class="fab fa-youtube"></i> Watch on YouTube
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function displayDocs(docs) {
+    const docsContainer = document.getElementById('docs-content');
+    
+    if (!docs || docs.length === 0) {
+        docsContainer.innerHTML = `
+            <div class="text-center py-4">
+                <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No documentation available for this module.</p>
+            </div>
+        `;
+        return;
+    }
+
+    docsContainer.innerHTML = `
+        <div class="accordion" id="docsAccordion">
+            ${docs.map((doc, index) => `
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button ${index === 0 ? '' : 'collapsed'}" 
+                                type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#collapse${index}">
+                            ${doc.title}
+                        </button>
+                    </h2>
+                    <div id="collapse${index}" 
+                         class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" 
+                         data-bs-parent="#docsAccordion">
+                        <div class="accordion-body">
+                            <div class="content mb-4">
+                                ${doc.content}
+                            </div>
+                            
+                            ${doc.links && doc.links.length > 0 ? `
+                                <div class="related-resources mt-4">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-external-link-alt"></i> 
+                                        Related Resources
+                                    </h5>
+                                    <div class="list-group">
+                                        ${doc.links.map(link => `
+                                            <a href="${link.url}" 
+                                               target="_blank" 
+                                               class="list-group-item list-group-item-action">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h6 class="mb-1">${link.title}</h6>
+                                                    <small>
+                                                        <i class="fas fa-external-link-alt"></i>
+                                                    </small>
+                                                </div>
+                                                <p class="mb-1 small text-muted">${link.description}</p>
+                                            </a>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function displayArticles(articles) {
+    const articlesContainer = document.getElementById('articles-content');
+    if (!articles || articles.length === 0) {
+        articlesContainer.innerHTML = `
+            <div class="text-center py-4">
+                <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No articles available for this module.</p>
+            </div>
+        `;
+        return;
+    }
+
+    articlesContainer.innerHTML = `
+        <div class="articles">
+            ${articles.map(article => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">${article.title}</h5>
+                        <p class="card-text text-muted">${article.description}</p>
+                        <a href="${article.url}" target="_blank" class="btn btn-outline-primary">
+                            <i class="fas fa-external-link-alt"></i> Read More
+                        </a>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function displayQuiz(quiz) {
+    const quizContainer = document.getElementById('quiz-content');
+    
+    if (!quiz || !quiz.questions || quiz.questions.length === 0) {
+        quizContainer.innerHTML = `
+            <div class="text-center py-4">
+                <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No quiz available for this module.</p>
+            </div>
+        `;
+        return;
+    }
+
+    quizContainer.innerHTML = `
+        <form id="quiz-form" class="quiz-form">
+            ${quiz.questions.map((q, qIndex) => `
+                <div class="card mb-4 quiz-question">
+                    <div class="card-body">
+                        <h5 class="card-title">Question ${qIndex + 1}</h5>
+                        <p class="card-text">${q.text}</p>
+                        
+                        <div class="options-list">
+                            ${q.options.map((option, oIndex) => `
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" 
+                                           type="radio" 
+                                           name="q${qIndex}" 
+                                           id="q${qIndex}o${oIndex}" 
+                                           value="${oIndex}">
+                                    <label class="form-check-label" for="q${qIndex}o${oIndex}">
+                                        ${option}
+                                    </label>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+            
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check-circle"></i> Submit Quiz
+                </button>
+            </div>
+        </form>
+    `;
+
+    // Add submit handler
+    document.getElementById('quiz-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Collect answers
+        const answers = quiz.questions.map((_, qIndex) => {
+            const selected = document.querySelector(`input[name="q${qIndex}"]:checked`);
+            return selected ? parseInt(selected.value) : -1;
+        });
+
+        try {
+            const response = await fetch('/submit_quiz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ answers })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                quizContainer.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-trophy fa-3x text-success mb-3"></i>
+                        <h4>Quiz Completed!</h4>
+                        <p class="lead">${result.message}</p>
+                        <button class="btn btn-primary mt-3" onclick="loadModuleQuiz()">
+                            <i class="fas fa-redo"></i> Take Quiz Again
+                        </button>
+                    </div>
+                `;
+            } else {
+                showError(result.error || 'Failed to submit quiz');
+            }
+
+        } catch (error) {
+            console.error('Error submitting quiz:', error);
+            showError('Failed to submit quiz. Please try again.');
+        }
+    });
+}
+
+function showError(message) {
+    const errorHTML = `
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-circle"></i> ${message}
+        </div>
+    `;
+    document.querySelectorAll('#videos-content, #docs-content, #articles-content, #quiz-content')
+        .forEach(el => el.innerHTML = errorHTML);
+}
+</script>
+
+<style>
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.nav-tabs .nav-link {
+    color: #6c757d;
+    border: none;
+    padding: 1rem 1.5rem;
+}
+
+.nav-tabs .nav-link.active {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+}
+
+.video-card {
+    transition: transform 0.2s;
+}
+
+.video-card:hover {
+    transform: translateY(-5px);
+}
+
+.documentation img {
+    max-width: 100%;
+    height: auto;
+}
+
+.quiz .form-check {
+    margin-bottom: 0.5rem;
+}
+
+.btn {
+    border-radius: 20px;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+</style>
+{% endblock %}

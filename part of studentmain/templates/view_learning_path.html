@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Learning Path Overview -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3>{{ learning_path.title }}</h3>
+                </div>
+            </div>
+
+            <!-- Modules List -->
+            <div class="list-group">
+                {% for module in learning_path.modules %}
+                <div class="list-group-item" data-module-id="{{ module.id }}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">{{ module.title }}</h6>
+                            <p class="mb-1 text-muted">{{ module.description }}</p>
+                        </div>
+                        <div>
+                            <button class="btn btn-primary btn-sm load-module-content" 
+                                    data-module-title="{{ module.title }}"
+                                    data-subject="{{ module.subject }}"
+                                    data-module-id="{{ module.id }}">
+                                <i class="fas fa-book-reader"></i> Start Learning
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Module Content Section -->
+        <div class="col-md-8">
+            <div class="card mt-4">
+                <div class="card-body">
+                    <!-- Module Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 id="current-module-title">Select a module to start learning</h3>
+                    </div>
+
+                    <!-- Learning Resources Tabs -->
+                    <ul class="nav nav-tabs mb-4" id="resourceTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="videos-tab" data-bs-toggle="tab" href="#videos" role="tab">
+                                <i class="fab fa-youtube text-danger"></i> Videos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="docs-tab" data-bs-toggle="tab" href="#docs" role="tab">
+                                <i class="fas fa-book text-primary"></i> Documentation
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="articles-tab" data-bs-toggle="tab" href="#articles" role="tab">
+                                <i class="fas fa-file-alt text-success"></i> Articles
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="quiz-tab" data-bs-toggle="tab" href="#quiz" role="tab">
+                                <i class="fas fa-question-circle text-info"></i> Quiz
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="resourceTabContent">
+                        <!-- Videos Tab -->
+                        <div class="tab-pane fade show active" id="videos" role="tabpanel">
+                            <div id="video-container">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-video fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Select a module to view video tutorials</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Documentation Tab -->
+                        <div class="tab-pane fade" id="docs" role="tabpanel">
+                            <div id="docs-container">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Select a module to view documentation</p>
+                                </div>
+                            </div>
+                            <div id="more-docs-container" class="mt-4" style="display: none;">
+                                <h5 class="mb-3">Additional Documentation</h5>
+                                <div class="list-group">
+                                    <!-- Additional docs will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Articles Tab -->
+                        <div class="tab-pane fade" id="articles" role="tabpanel">
+                            <div id="articles-container">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Select a module to view articles</p>
+                                </div>
+                            </div>
+                            <div id="more-articles-container" class="mt-4" style="display: none;">
+                                <h5 class="mb-3">Additional Articles</h5>
+                                <div class="list-group">
+                                    <!-- Additional articles will be loaded here -->
+                                </div>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a id="more-articles-btn" href="#" target="_blank" class="btn btn-outline-success">
+                                    <i class="fas fa-external-link-alt"></i> More Resources
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Quiz Tab -->
+                        <div class="tab-pane fade" id="quiz" role="tabpanel">
+                            <div id="quiz-container">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Select a module to start the quiz</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.load-module-content').forEach(button => {
+    button.addEventListener('click', async function() {
+        const moduleId = this.getAttribute('data-module-id');
+        const moduleTitle = this.getAttribute('data-module-title');
+        const subject = this.getAttribute('data-subject') || '';
+        
+        if (!moduleTitle) {
+            console.error('No module title found on button');
+            return;
+        }
+        
+        // Update module title
+        const titleElement = document.getElementById('current-module-title');
+        titleElement.textContent = moduleTitle;
+
+        // Show loading states for all containers
+        const containers = {
+            video: document.getElementById('video-container'),
+            docs: document.getElementById('docs-container'),
+            articles: document.getElementById('articles-container'),
+            quiz: document.getElementById('quiz-container')
+        };
+
+        Object.values(containers).forEach(container => {
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Loading content...</p>
+                </div>
+            `;
+        });
+
+        try {
+            // Fetch all resources in parallel
+            const [videosResponse, docsResponse, articlesResponse, quizResponse] = await Promise.all([
+                fetch(`/get_module_videos?module=${encodeURIComponent(moduleTitle)}&subject=${encodeURIComponent(subject)}`),
+                fetch(`/get_module_docs?module=${encodeURIComponent(moduleTitle)}&subject=${encodeURIComponent(subject)}`),
+                fetch(`/get_module_articles?module=${encodeURIComponent(moduleTitle)}&subject=${encodeURIComponent(subject)}`),
+                fetch(`/get_module_quiz?module=${encodeURIComponent(moduleTitle)}&subject=${encodeURIComponent(subject)}`)
+            ]);
+
+            const [videosData, docsData, articlesData, quizData] = await Promise.all([
+                videosResponse.json(),
+                docsResponse.json(),
+                articlesResponse.json(),
+                quizResponse.json()
+            ]);
+
+            // Update videos section
+            if (videosData.videos && videosData.videos.length > 0) {
+                let videosHtml = '<div class="row">';
+                videosData.videos.forEach(video => {
+                    videosHtml += `
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="ratio ratio-16x9">
+                                    <iframe 
+                                        src="https://www.youtube.com/embed/${video.id}"
+                                        title="${video.title}"
+                                        frameborder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowfullscreen>
+                                    </iframe>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">${video.title}</h5>
+                                    <p class="card-text text-muted">${video.description}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                videosHtml += '</div>';
+                containers.video.innerHTML = videosHtml;
+            } else {
+                containers.video.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No videos available for this module.
+                    </div>
+                `;
+            }
+
+            // Update documentation section
+            if (docsData.docs && docsData.docs.length > 0) {
+                let docsHtml = '<div class="row">';
+                docsData.docs.forEach(doc => {
+                    docsHtml += `
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-book text-primary"></i> ${doc.title}
+                                    </h5>
+                                    <p class="card-text text-muted">${doc.description}</p>
+                                    <a href="${doc.url}" target="_blank" class="btn btn-outline-primary">
+                                        <i class="fas fa-external-link-alt"></i> Read Documentation
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                docsHtml += '</div>';
+                containers.docs.innerHTML = docsHtml;
+            } else {
+                containers.docs.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No documentation available for this module.
+                    </div>
+                `;
+            }
+
+            // Update articles section
+            if (articlesData.articles && articlesData.articles.length > 0) {
+                let articlesHtml = '<div class="row">';
+                articlesData.articles.forEach(article => {
+                    articlesHtml += `
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-file-alt text-success"></i> ${article.title}
+                                    </h5>
+                                    <p class="card-text text-muted">${article.description}</p>
+                                    <a href="${article.url}" target="_blank" class="btn btn-outline-success">
+                                        <i class="fas fa-book-reader"></i> Read Article
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                articlesHtml += '</div>';
+                containers.articles.innerHTML = articlesHtml;
+            } else {
+                containers.articles.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No articles available for this module.
+                    </div>
+                `;
+            }
+
+            // Update quiz section
+            if (quizData.quiz && quizData.quiz.length > 0) {
+                let quizHtml = '<div class="quiz-questions">';
+                quizData.quiz.forEach((question, index) => {
+                    quizHtml += `
+                        <div class="card mb-4 quiz-question" data-question="${index}">
+                            <div class="card-body">
+                                <h5 class="card-title">Question ${index + 1}</h5>
+                                <p class="card-text">${question.question}</p>
+                                <div class="options-container">
+                                    ${question.options.map((option, optIndex) => `
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" 
+                                                   name="question${index}" 
+                                                   value="${optIndex}" 
+                                                   id="q${index}opt${optIndex}">
+                                            <label class="form-check-label" for="q${index}opt${optIndex}">
+                                                ${option}
+                                            </label>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div class="explanation mt-3" style="display: none;">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i> ${question.explanation}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                quizHtml += `
+                    <div class="text-center mb-4">
+                        <button class="btn btn-primary" onclick="checkQuizAnswers()">
+                            <i class="fas fa-check"></i> Check Answers
+                        </button>
+                    </div>
+                `;
+                containers.quiz.innerHTML = quizHtml;
+                window.quizAnswers = quizData.quiz.map(q => q.correct);
+            } else {
+                containers.quiz.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No quiz available for this module.
+                    </div>
+                `;
+            }
+
+        } catch (error) {
+            console.error('Error loading content:', error);
+            Object.values(containers).forEach(container => {
+                container.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> Error loading content. Please try again.
+                    </div>
+                `;
+            });
+        }
+    });
+});
+
+// Function to check quiz answers
+function checkQuizAnswers() {
+    const questions = document.querySelectorAll('.quiz-question');
+    let score = 0;
+    
+    questions.forEach((question, index) => {
+        const selectedOption = question.querySelector(`input[name="question${index}"]:checked`);
+        const explanation = question.querySelector('.explanation');
+        const optionsContainer = question.querySelector('.options-container');
+        
+        if (selectedOption) {
+            const answer = parseInt(selectedOption.value);
+            const correct = window.quizAnswers[index];
+            
+            // Reset previous styling
+            optionsContainer.querySelectorAll('.form-check').forEach(check => {
+                check.classList.remove('text-success', 'text-danger');
+            });
+            
+            // Mark correct and incorrect answers
+            optionsContainer.querySelectorAll('.form-check').forEach((check, checkIndex) => {
+                if (checkIndex === correct) {
+                    check.classList.add('text-success');
+                } else if (checkIndex === answer && answer !== correct) {
+                    check.classList.add('text-danger');
+                }
+            });
+            
+            if (answer === correct) score++;
+            explanation.style.display = 'block';
+        }
+    });
+    
+    // Show final score if not already shown
+    if (!document.querySelector('.quiz-score')) {
+        const scoreHtml = `
+            <div class="alert alert-success text-center mt-4 quiz-score">
+                <h5>Your Score: ${score}/${questions.length}</h5>
+                <p class="mb-0">Keep practicing to improve your understanding!</p>
+            </div>
+        `;
+        document.querySelector('.quiz-questions').insertAdjacentHTML('beforeend', scoreHtml);
+    }
+}
+</script>
+
+<style>
+.progress {
+    height: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.progress-bar {
+    background-color: #4CAF50;
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.list-group-item {
+    border-radius: 8px !important;
+    margin-bottom: 5px;
+}
+
+.btn {
+    border-radius: 20px;
+}
+
+.badge {
+    padding: 8px 12px;
+}
+
+.ratio {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.nav-tabs .nav-link {
+    border-radius: 20px 20px 0 0;
+    padding: 10px 20px;
+}
+
+.nav-tabs .nav-link.active {
+    font-weight: bold;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ subject.name }} - Class Discussion</h5>
+                    <a href="{{ url_for('view_subject', subject_id=subject._id) }}" class="btn btn-light btn-sm">Back to Subject</a>
+                </div>
+                <div class="card-body" id="chat-messages" style="height: 400px; overflow-y: auto;">
+                    {% for message in chat_history %}
+                        <div class="message mb-2">
+                            <div class="message-header">
+                                <small class="text-muted">
+                                    <span class="{% if message.sender_role == 'teacher' %}text-primary{% endif %}">
+                                        {{ message.sender_name }} ({{ message.sender_role|title }})
+                                    </span>
+                                    - {{ message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                                </small>
+                            </div>
+                            <div class="message-content p-2 rounded {% if message.sender_id|string == current_user.id|string %}bg-light{% else %}bg-white border{% endif %}" style="max-width: 80%; margin-left: {% if message.sender_id|string == current_user.id|string %}auto{% else %}0{% endif %};">
+                                {{ message.message }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer">
+                    <form id="message-form" class="input-group">
+                        <input type="text" id="message-input" class="form-control" placeholder="Type your message...">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">Send</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Socket.IO JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const socket = io();
+        const chatMessages = document.getElementById('chat-messages');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        
+        // Join the subject room
+        const subjectId = '{{ subject._id }}';
+        socket.emit('join_subject', { subject_id: subjectId });
+        
+        // Scroll to bottom of chat
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Handle form submission
+        messageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (message) {
+                socket.emit('send_subject_message', {
+                    subject_id: subjectId,
+                    message: message
+                });
+                messageInput.value = '';
+            }
+        });
+        
+        // Handle incoming messages
+        socket.on('new_subject_message', function(data) {
+            const isCurrentUser = data.sender_id === '{{ current_user.id }}';
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message mb-2';
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <small class="text-muted">
+                        <span class="${data.sender_role === 'teacher' ? 'text-primary' : ''}">
+                            ${data.sender_name} (${data.sender_role.charAt(0).toUpperCase() + data.sender_role.slice(1)})
+                        </span>
+                        - ${data.timestamp}
+                    </small>
+                </div>
+                <div class="message-content p-2 rounded ${isCurrentUser ? 'bg-light' : 'bg-white border'}" 
+                     style="max-width: 80%; margin-left: ${isCurrentUser ? 'auto' : '0'};">
+                    ${data.message}
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+        
+        // Clean up when leaving
+        window.addEventListener('beforeunload', function() {
+            socket.emit('leave_subject', { subject_id: subjectId });
+        });
+    });
+</script>
+{% endblock %}

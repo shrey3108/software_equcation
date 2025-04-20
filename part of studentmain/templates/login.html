@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row min-vh-100 bg-light">
+        <!-- Left side - Image -->
+        <div class="col-lg-6 d-none d-lg-flex bg-primary align-items-center justify-content-center">
+            <div class="text-center text-white p-5">
+                <i class="fas fa-graduation-cap fa-5x mb-4"></i>
+                <h1 class="display-4 fw-bold mb-4">Welcome Back!</h1>
+                <p class="lead mb-4">Continue your learning journey with us.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <div class="text-center px-4">
+                        <i class="fas fa-book-reader fa-2x mb-2"></i>
+                        <p class="mb-0">Learn</p>
+                    </div>
+                    <div class="text-center px-4">
+                        <i class="fas fa-brain fa-2x mb-2"></i>
+                        <p class="mb-0">Grow</p>
+                    </div>
+                    <div class="text-center px-4">
+                        <i class="fas fa-award fa-2x mb-2"></i>
+                        <p class="mb-0">Achieve</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Right side - Login Form -->
+        <div class="col-lg-6 d-flex align-items-center justify-content-center">
+            <div class="card shadow-lg border-0" style="min-width: 400px;">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold">Login</h2>
+                        <p class="text-muted">Please enter your credentials</p>
+                    </div>
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label for="username" class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <input type="text" class="form-control" id="username" name="username" required 
+                                       placeholder="Enter your username">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="password" name="password" required 
+                                       placeholder="Enter your password">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </button>
+                        <p class="text-center mb-0">
+                            Don't have an account? 
+                            <a href="{{ url_for('register') }}" class="text-primary text-decoration-none">Register here</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0099ff 100%) !important;
+}
+.input-group-text {
+    border: none;
+}
+.form-control {
+    border-left: none;
+}
+.form-control:focus {
+    border-color: #dee2e6;
+    box-shadow: none;
+}
+</style>
+{% endblock %}
